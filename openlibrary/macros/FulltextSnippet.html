@@ -1,22 +1,32 @@
 $def with (q, doc=None)
 
 $ ia = doc.get('fields', {}).get('identifier', [''])[0]
+$ ia_base_url = "https://archive.org"
 $ availability = doc.get('availability', {})
-$ snippets = doc.get('highlight', {}).get('text', [''])
+$ snippet = doc.get('highlight', {}).get('text', [''])[0]
 $ page_nums = doc.get('fields', {}).get('page_num', [])
-$ page = ', '.join([str(num) for num in page_nums])
+$if len(page_nums) == 1 and isinstance(page_nums[0], list):
+    $ page_nums = page_nums[0]
+$ page = ', '.join(str(num) for num in page_nums)
 
-$if snippets:
-  <section class="fulltext-excerpts" aria-label="search results from: $doc['edition']['title']">
-    <ul>
-      $for snippet in snippets:
-        $if snippet:
-          <li class="fulltext-excerpt">
+$if snippet:
+  <div class="fsi-snippet">
+      $if snippet:
+        <div class="fsi-snippet__main">
+          <div class="fsi-snippet__quotation-mark">$_('❝')</div>
+          <a class="fsi-snippet__link" href="$ia_base_url/details/$ia">
             &hellip;$:(snippet.replace("<", "&laquo;").replace(">", "&raquo;").replace("{{{", "<mark class='highlight'><strong>").replace("}}}", "</strong></mark>"))&hellip;
-          </li>
-    </ul>
-  </section>
+          </a>
+          <div class="fsi-snippet__quotation-mark">$_('❞')</div>
+          $if page:
+          <a class="fsi-snippet__page-num" href="$ia_base_url/details/$ia">
+            <div>Page: $page</div>
+          </a>
+        </div>
+  </div>
 
-$if availability.get('status') == 'open' || 'borrow_available':
+$if availability.get('status') == 'open':
   <p class="center"><a href="https://archive.org/stream/$(ia)?ref=ol&access=1#search/$(q)">See All Results</a></p>
 
+$if availability.get('status') == 'borrow_available':
+  <p class="center">Borrow &amp; <a href="https://archive.org/stream/$(ia)?ref=ol&access=1#search/$(q)">See All Results</a></p>
